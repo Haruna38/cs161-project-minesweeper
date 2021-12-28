@@ -116,9 +116,9 @@ int MinesweeperUtils::stoi(string str) {
     return atoi( str.c_str() );
 }
 
-string MinesweeperUtils::toDateString (long epoch) {
-    return asctime(gmtime((time_t*)epoch));
-}
+//string MinesweeperUtils::toDateString (long epoch) {
+//    return asctime(gmtime((time_t*)epoch));
+//}
 
 string MinesweeperUtils::convertTime (long seconds) {
     long s = seconds % 60;

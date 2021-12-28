@@ -8,6 +8,11 @@
 
 using namespace std;
 
+struct highScore
+{
+    string name;
+    int score;
+};
 
 class MinesweeperGameManager {
     public:
@@ -16,9 +21,11 @@ class MinesweeperGameManager {
 
     MineField* currentData;
 
-    vector <string> startMenuOptions {"Start a new game", "Load an existing game", "Quit"};
+    vector <string> startMenuOptions {"Start a new game", "Load an existing game", "Leaderboard", "Quit"};
 
     MinesweeperUtils Utils;
+    
+    vector <highScore> scoreBoard;
 
     void load (MineField* data);
     // load game from given data
@@ -59,29 +66,48 @@ class MinesweeperGameManager {
     void win ();
     // user wins the game
 
-    void endGameSelection (string text);
+    void endGameSelection (string text, bool isWin);
     // display endgame with text
+
+    void fetchHighscores();
+    // load highscore from file
+
+    void sortHighscores();
+    // sort highscores in the descending order
+
+    void exportHighscores();
+    // export highscores to file
+
+    void printHighscores();
+    // print scoreboard to the console
+
+    int getScore(MineField* data);
+    // get the score from the MineField
 };
 
-void MinesweeperGameManager::load (MineField* data) {
+void MinesweeperGameManager::load (MineField* data)
+{
     records.push_back(data);
     currentData = data;
     startProcess();
 };
 
-void MinesweeperGameManager::create () {
+void MinesweeperGameManager::create ()
+{
     Utils.clearConsole();
     int mapSize, bombs;
-    cout << "Please Enter field size (minimum 2, -1 to back to menu): ";
+ cout << "Please Enter field size (minimum 2, -1 to back to menu): ";
     Utils.readInt(mapSize);
     if (mapSize < 0) {
         start();
         return;
     }
     mapSize = max(mapSize, 2);
-    cout << "Please Enter field size (minimum 1, maximum (size^2 - 1), -1 to back to menu): ";
+    
+    cout << "Please Enter the amount of bombs (minimum 1, maximum  "<< pow(mapSize,2) - 1 <<", - 1 to back to menu): ";
     Utils.readInt(bombs);
-    if (bombs < 0) {
+    if (bombs < 0) 
+    {
         start();
         return;
     }
@@ -89,7 +115,8 @@ void MinesweeperGameManager::create () {
     load(new MineField(mapSize, bombs));
 };
 
-void MinesweeperGameManager::fetchRecords () {
+void MinesweeperGameManager::fetchRecords ()
+{
     records.clear();
     ifstream recordsFile ("MinesweeperRecords.txt");
     string content( (istreambuf_iterator<char>(recordsFile) ), (istreambuf_iterator<char>()    ) );
@@ -107,7 +134,25 @@ void MinesweeperGameManager::fetchRecords () {
     exportRecords();
 };
 
-void MinesweeperGameManager::exportRecords () {
+void MinesweeperGameManager::fetchHighscores()
+{
+    scoreBoard.clear();
+    ifstream recordsFile("MinesweeperHighscores.txt");
+    string content((istreambuf_iterator<char>(recordsFile)), (istreambuf_iterator<char>()));
+    vector <string> rawRecords = Utils.splitString(content, "\n\n");
+    for (string rawRecord : rawRecords) {
+        vector <string> recordInfo = Utils.splitString(rawRecord, "\n");
+        highScore data;
+        data.name = recordInfo[0];
+        data.score = Utils.stoi(recordInfo[1]);
+        scoreBoard.push_back(data);
+    }
+    recordsFile.close();
+    sortHighscores();
+}
+
+void MinesweeperGameManager::exportRecords () 
+{
     ofstream recordsFile ("MinesweeperRecords.txt");
     for (MineField* MF : records) {
         recordsFile << MF->exportData() << endl << endl;
@@ -115,10 +160,21 @@ void MinesweeperGameManager::exportRecords () {
     recordsFile.close();
 }
 
-void MinesweeperGameManager::chooseRecord () {
+void MinesweeperGameManager::exportHighscores () 
+{
+    ofstream recordsFile ("MinesweeperHighscores.txt");
+    for (highScore hS : scoreBoard) {
+        recordsFile << hS.name << endl << hS.score << endl << endl;
+    }
+    recordsFile.close();
+}
+
+void MinesweeperGameManager::chooseRecord () 
+{
     Utils.clearConsole();
     int i = 0, selection;
-    for (MineField* fieldData : records) {
+    for (MineField* fieldData : records) 
+    {
         cout << i++ << ". " << fieldData->savedTimestamp << " | Field size: " << fieldData->Size << ", Bombs: " << fieldData->bombsCount << endl; 
     }
     if (records.size() == 0) cout << "NO RECORDS SAVED" << endl;
@@ -129,18 +185,49 @@ void MinesweeperGameManager::chooseRecord () {
     else chooseRecord();
 };
 
-void MinesweeperGameManager::removeRecord (MineField* data) {
+void MinesweeperGameManager::printHighscores () {
+    Utils.clearConsole();
+    int i = 1;
+    cout << "LEADERBOARD:" << endl;
+    for (highScore data : scoreBoard) {
+        cout << i++ << ". " << data.name << " (" << data.score << " points)" << endl;
+    }
+    if (scoreBoard.size() == 0) cout << "NO DATA" << endl;
+    int x;
+    cout << "Input anything to go back to home screen...";
+    Utils.readInt(x);
+    start();
+}
+
+// small component function
+
+bool compareHighscores(highScore i1, highScore i2)
+{
+    return (i1.score > i2.score);
+}
+
+void MinesweeperGameManager::sortHighscores() {
+    sort(scoreBoard.begin(), scoreBoard.end(), compareHighscores);
+    while (scoreBoard.size() > 10) scoreBoard.pop_back();
+    exportHighscores();
+}
+
+void MinesweeperGameManager::removeRecord (MineField* data) 
+{
     auto it = find(records.begin(), records.end(), data);
     if (it != records.end()) records.erase(it);
 }
 
-void MinesweeperGameManager::save () {
+void MinesweeperGameManager::save ()
+{
     currentData->save();
 };
 
-void MinesweeperGameManager::start () {
+void MinesweeperGameManager::start () 
+{
     Utils.clearConsole();
     fetchRecords();
+    fetchHighscores();
     cout << "Welcome to Minesweeper!" << endl;
     cout << "Please choose a number below to start:" << endl;
     int menuSize = startMenuOptions.size();
@@ -157,16 +244,37 @@ void MinesweeperGameManager::start () {
             chooseRecord();
             break;
         case 2:
+            printHighscores();
+            break;
+        case 3:
             quit(false);
+            break;
     }
 };
 
-void MinesweeperGameManager::endGameSelection (string str) {
+void MinesweeperGameManager::endGameSelection (string str, bool isWin)
+{
     currentData->save();
     render();
     removeRecord(currentData);
     cout << str << endl;
     cout << "Times played: " << Utils.convertTime(currentData->timesPlayed) << endl;
+    if (isWin) {
+        int score = getScore(currentData);
+        cout << "Score: " << score << endl;
+        if (score > 0 && currentData->timesPlayed > 0 && (scoreBoard.size() < 10 || score > scoreBoard.back().score)) {
+            string name;
+            cout << "Looks like that you get a high score! Please Enter your name: ";
+            cin.ignore();
+            getline(cin, name);
+            highScore Score;
+            Score.name = name;
+            Score.score = score;
+            scoreBoard.push_back(Score);
+            sortHighscores();
+            cout << "Highscore saved!" << endl;
+        }
+    }
     cout << "Type anything to back to menu, 0 to quit: ";
     int selection;
     Utils.readInt(selection);
@@ -174,17 +282,27 @@ void MinesweeperGameManager::endGameSelection (string str) {
     else start();
 }
 
-void MinesweeperGameManager::gameOver () {
+void MinesweeperGameManager::gameOver () 
+{
     currentData->revealAllBombs();
-    endGameSelection("Oops! You digged deeper and caught a bomb! Too bad!");
+    endGameSelection("Oops! You digged deeper and caught a bomb! Too bad!", false);
 }
 
-void MinesweeperGameManager::win () {
-    endGameSelection("You win!");
+int MinesweeperGameManager::getScore(MineField* data) {
+    double size_2 = pow(data->Size, 2);
+    double difficulty = 5 / (pow(size_2, 2) / 4 - size_2 + 1) * (data->bombsCount - 1) * (size_2 - 1 - data->bombsCount);
+    return round(difficulty * data->clicks / data->timesPlayed * pow(data->Size, 2));
 }
 
-void MinesweeperGameManager::quit (bool needSave) {
-    if (needSave) {
+void MinesweeperGameManager::win ()
+{
+    endGameSelection("You win!", true);
+}
+
+void MinesweeperGameManager::quit (bool needSave)
+{
+    if (needSave) 
+    {
         cout << "Save this game? (-1: Cancel, 0: No, 1: Yes): ";
         int prom;
         Utils.readInt(prom);
@@ -200,12 +318,14 @@ void MinesweeperGameManager::quit (bool needSave) {
     cout << "Thanks for playing!";
 }
 
-void MinesweeperGameManager::render () {
+void MinesweeperGameManager::render () 
+{
     Utils.clearConsole();
     currentData->render();
 }
 
-void MinesweeperGameManager::startProcess () {
+void MinesweeperGameManager::startProcess ()
+{
     render();
     cout << "Input row, column position of a block (from 0 to " << currentData->Size - 1 << ") and a flagged number (0 to open, 1 to flag), -1 to exit: ";
     int row, column, flagged;
@@ -231,3 +351,4 @@ void MinesweeperGameManager::startProcess () {
         else startProcess();
     }
 }
+

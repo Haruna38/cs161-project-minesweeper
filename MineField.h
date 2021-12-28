@@ -37,6 +37,8 @@ class MineField {
 
     int openedTimestamp; // timestamp when you reopen the record
 
+    int clicks; // click time
+
     vector <vector <MineCell*>> map; // Map data
 
     MineField (int FieldSize, int BombsCount);
@@ -94,6 +96,7 @@ class MineField {
 MineField::MineField (int FieldSize, int BombsCount) {
     savedTimestamp = time(0);
     timesPlayed = 0;
+    clicks = 0;
     Size = FieldSize;
     bombsCount = BombsCount < (pow(Size, 2) - 1) ? BombsCount : (pow(Size, 2) - 1);
     createEmptyMap(Size);
@@ -181,6 +184,7 @@ bool MineField::reveal (int x, int y, bool passiveMode, bool flagged) {
     }
     MineCell* revealingCell = map[x][y];
     if (revealingCell->revealed || (!passiveMode && revealingCell->flagged)) return false;
+    if (!passiveMode) ++clicks;
     int firstReveal = firstTime;
     if (revealingCell->hasBomb) {
         if (passiveMode) return true;
