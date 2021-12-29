@@ -175,7 +175,7 @@ void MinesweeperGameManager::chooseRecord ()
     int i = 0, selection;
     for (MineField* fieldData : records) 
     {
-        cout << i++ << ". " << fieldData->savedTimestamp << " | Field size: " << fieldData->Size << ", Bombs: " << fieldData->bombsCount << endl; 
+        cout << i++ << ". " << Utils.toDateString(fieldData->savedTimestamp) << " | Field size: " << fieldData->Size << ", Bombs: " << fieldData->bombsCount << endl; 
     }
     if (records.size() == 0) cout << "NO RECORDS SAVED" << endl;
     cout << endl << "Choose a game from your saved records, -1 to go back: ";

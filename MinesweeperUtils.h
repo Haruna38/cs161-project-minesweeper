@@ -46,6 +46,9 @@ class MinesweeperUtils {
 
     string convertTime(long seconds);
     // convert seconds to AhBmCs
+
+    string toString(char[]);
+    // convert char array to string
 };
 
 void MinesweeperUtils::clearConsole () {        
@@ -116,9 +119,17 @@ int MinesweeperUtils::stoi(string str) {
     return atoi( str.c_str() );
 }
 
-//string MinesweeperUtils::toDateString (long epoch) {
-//    return asctime(gmtime((time_t*)epoch));
-//}
+string MinesweeperUtils::toDateString (long epoch) {
+    time_t rawtime = (int)epoch;
+    struct tm * timeinfo;
+    char buffer [255];
+
+    timeinfo = localtime (&rawtime);
+
+    strftime (buffer, 255, "%a %h %d %G  %I:%M:%S %p", timeinfo);
+
+    return toString(buffer);
+}
 
 string MinesweeperUtils::convertTime (long seconds) {
     long s = seconds % 60;
@@ -126,4 +137,11 @@ string MinesweeperUtils::convertTime (long seconds) {
     long m = seconds % 60;
     long h = seconds / 60;
     return to_string(h) + "h" + to_string(m) + "m" + to_string(s) + "s";
+}
+
+string MinesweeperUtils::toString(char ch[]) {
+    string res = "";
+    int i = 0;
+    while (ch[i] != '\0') res += ch[i++];
+    return res;
 }
