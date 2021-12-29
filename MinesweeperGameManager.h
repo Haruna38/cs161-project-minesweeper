@@ -15,7 +15,13 @@ struct highScore
 };
 
 class MinesweeperGameManager {
-    public:
+    private:
+
+    static bool compareHighscores(highScore i1, highScore i2);
+    // compare 2 high scores
+
+    static bool compareRecords(MineField* m1, MineField* m2);
+    // compare 2 records
 
     vector <MineField*> records;
 
@@ -36,9 +42,6 @@ class MinesweeperGameManager {
     void fetchRecords();
     // get Records from file
 
-    void start();
-    // start the game
-
     void gameOver ();
     // Gameover the player
 
@@ -53,6 +56,9 @@ class MinesweeperGameManager {
 
     void chooseRecord ();
     // userInput choose record
+
+    void sortRecords();
+    // sort the records
 
     void exportRecords();
     // export records to file
@@ -83,6 +89,11 @@ class MinesweeperGameManager {
 
     int getScore(MineField* data);
     // get the score from the MineField
+
+    public:
+
+    void start();
+    // start the game
 };
 
 void MinesweeperGameManager::load (MineField* data)
@@ -131,7 +142,7 @@ void MinesweeperGameManager::fetchRecords ()
         if (MF->valid) records.push_back(MF);
     }
     recordsFile.close();
-    exportRecords();
+    sortRecords();
 };
 
 void MinesweeperGameManager::fetchHighscores()
@@ -199,17 +210,23 @@ void MinesweeperGameManager::printHighscores () {
     start();
 }
 
-// small component function
-
-bool compareHighscores(highScore i1, highScore i2)
-{
+bool MinesweeperGameManager::compareHighscores(highScore i1, highScore i2) {
     return (i1.score > i2.score);
-}
+};
 
 void MinesweeperGameManager::sortHighscores() {
     sort(scoreBoard.begin(), scoreBoard.end(), compareHighscores);
     while (scoreBoard.size() > 10) scoreBoard.pop_back();
     exportHighscores();
+}
+
+bool MinesweeperGameManager::compareRecords(MineField* m1, MineField* m2) {
+    return (m1->savedTimestamp > m2->savedTimestamp);
+}
+
+void MinesweeperGameManager::sortRecords() {
+    sort(records.begin(), records.end(), compareRecords);
+    exportRecords();
 }
 
 void MinesweeperGameManager::removeRecord (MineField* data) 
