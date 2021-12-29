@@ -289,9 +289,11 @@ void MinesweeperGameManager::gameOver ()
 }
 
 int MinesweeperGameManager::getScore(MineField* data) {
+    if (data->timesPlayed == 0) return 0;
     double size_2 = pow(data->Size, 2);
-    double difficulty = 5 / (pow(size_2, 2) / 4 - size_2 + 1) * (data->bombsCount - 1) * (size_2 - 1 - data->bombsCount);
-    return round(difficulty * data->clicks / data->timesPlayed * pow(data->Size, 2));
+    double mine = data->bombsCount;
+    double difficulty = 5.0 / (pow(size_2, 2.0) / 4.0 - size_2 + 1.0) * (mine - 1.0) * (size_2 - 1.0 - mine);
+    return round(difficulty * data->clicks / data->timesPlayed * size_2);
 }
 
 void MinesweeperGameManager::win ()
