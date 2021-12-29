@@ -115,7 +115,7 @@ void MinesweeperGameManager::create ()
     }
     mapSize = max(mapSize, 2);
     
-    cout << "Please Enter the amount of bombs (minimum 1, maximum  "<< pow(mapSize,2) - 1 <<", - 1 to back to menu): ";
+    cout << "Please Enter the amount of bombs (minimum 1, maximum " << pow(mapSize,2) - 1 << ", -1 to back to menu): ";
     Utils.readInt(bombs);
     if (bombs < 0) 
     {
